@@ -1,132 +1,192 @@
 <template>
-    <header>
-      <div class="logo">
-        <img src="logo.png" alt="Brand Logo">
-      </div>
-      <nav>
-        <ul class="main-nav">
-          <li><a href="#">Home</a></li>
-          <li><a href="#">Products</a></li>
-          <li><a href="#">Services</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="#">Contact</a></li>
-        </ul>
-      </nav>
-      <div class="menu-icon" @click="togglePopup">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-      <div class="popup" :class="{ 'show': showPopup }">
+  <header>
+    <div class="logo">
+      <img src="https://cdn-icons-png.flaticon.com/512/103/103946.png" alt="Brand Logo">
+    </div>
+    <nav>
+      <ul class="main-nav" :class="{ 'show': showLinks }">
+        <li v-for="link in navLinks" :key="link.to">
+          <router-link :to="link.to" @click.native="hidePopup">{{ link.label }}</router-link>
+        </li>
+      </ul>
+    </nav>
+    <div class="menu-icon" @click="togglePopup">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div class="popup" :class="{ 'show': showPopup }">
+      <div class="popup-content">
+        <button class="close-icon" @click="hidePopup">X</button>
         <nav class="popup-nav">
           <ul>
-            <li><a href="#">Page 1</a></li>
-            <li><a href="#">Page 2</a></li>
-            <li><a href="#">Page 3</a></li>
-            <li><a href="#">Page 4</a></li>
+            <li v-for="link in navLinks" :key="link.to">
+              <router-link :to="link.to">{{ link.label }}</router-link>
+            </li>
           </ul>
         </nav>
       </div>
-    </header>
-  </template>
-  
-  <script>
-  export default {
-    data() {
-      return {
-        showPopup: false
-      };
+    </div>
+  </header>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      showPopup: false,
+      showLinks: true,
+      navLinks: [
+        { to: "/", label: "Home" },
+        { to: "/brand", label: "Brand" },
+        { to: "/conductor", label: "Conductor" },
+        { to: "/model", label: "Model" },
+        { to: "/movement", label: "Movement" },
+        { to: "/vehicle", label: "Vehicle" },
+        { to: "/settings", label: "Settings" }
+      ]
+    };
+  },
+  methods: {
+    togglePopup() {
+      this.showPopup = !this.showPopup;
+      this.showLinks = false; // Hide the links in the main navigation when the popup is shown
     },
-    methods: {
-      togglePopup() {
-        this.showPopup = !this.showPopup;
-      }
+    hidePopup() {
+      this.showPopup = false;
+      this.showLinks = true; // Show the links in the main navigation when the popup is hidden
     }
-  };
-  </script>
-  
-  <style scoped>
-  /* Header styles */
-  header {
-    background-color: #f2f2f2;
-    display: flex;
-    align-items: center;
-    padding: 10px;
   }
-  
-  .logo img {
-    height: 40px;
-  }
-  
-  nav ul {
-    list-style: none;
-    display: flex;
-    margin: 0;
-    padding: 0;
-  }
-  
+};
+</script>
+
+<style scoped>
+/* Header styles */
+header {
+  background-color: #f2f2f2;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+
+.logo img {
+  height: 40px;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li {
+  margin-right: 15px;
+}
+
+nav ul li a {
+  text-decoration: none;
+  color: #333;
+}
+
+/* Menu icon styles */
+.menu-icon {
+  display: none;
+  cursor: pointer;
+}
+
+.menu-icon span {
+  display: block;
+  width: 25px;
+  height: 3px;
+  background-color: #333;
+  margin-bottom: 5px;
+}
+
+/* Popup styles */
+.popup {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 200px;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.popup.show {
+  display: block;
+}
+
+.popup-content {
+  position: absolute;
+  top: 0;
+  right: -200px;
+  height: 100%;
+  width: 200px;
+  background-color: #fff;
+  padding: 20px;
+  box-sizing: border-box;
+  transition: right 0.3s ease-in-out;
+}
+
+.popup.show .popup-content {
+  right: 0;
+}
+
+.popup-nav ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.popup-nav ul li {
+  margin-bottom: 10px;
+}
+
+.popup-nav ul li a {
+  text-decoration: none;
+  color: #333;
+}
+
+.close-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
   nav ul li {
-    margin-right: 15px;
+    display: none;
   }
-  
-  nav ul li a {
-    text-decoration: none;
-    color: #333;
-  }
-  
-  /* Menu icon styles */
+
   .menu-icon {
-    display: none;
-    cursor: pointer;
-  }
-  
-  .menu-icon span {
     display: block;
-    width: 25px;
-    height: 3px;
-    background-color: #333;
-    margin-bottom: 5px;
+    margin-left: auto;
   }
-  
-  /* Popup styles */
-  .popup {
-    display: none;
-    position: fixed;
-    top: 0;
+
+  .popup-content {
+    width: 100%;
+    right: -100%;
+    transition: right 0.3s ease-in-out;
+  }
+
+  .popup.show .popup-content {
     right: 0;
-    bottom: 0;
-    left: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 999;
   }
-  
-  .popup.show {
-    display: block;
+
+  .main-nav.show {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 10px;
   }
-  
-  .popup-nav {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 200px;
-    background-color: #fff;
-    padding: 20px;
-    box-sizing: border-box;
-  }
-  
-  .popup-nav ul {
-    list-style: none;
-    padding: 0;
-  }
-  
-  .popup-nav ul li {
-    margin-bottom: 10px;
-  }
-  
-  .popup-nav ul li a {
-    text-decoration: none;
-    color: #333;
-  }
-  </style>
-  
+}
+</style>

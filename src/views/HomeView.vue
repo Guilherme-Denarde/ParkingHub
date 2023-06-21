@@ -1,19 +1,3 @@
 <template>
-  <div class="home">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
-  </div>
+    <h1>Olha eu aqui</h1>
 </template>
-
-<script lang="ts">
-import { Options, Vue } from 'vue-class-component';
-import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
-import Header from '@/components/Header.vue';
-
-@Options({
-  components: {
-    HelloWorld,
-    Header,
-  },
-})
-export default class HomeView extends Vue {}
-</script>
