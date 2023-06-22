@@ -104,6 +104,7 @@ export default defineComponent({
 
     const createBrand = (): void => {
       if (newBrandName.value.trim() === '') return;
+      // console.log('Brand Name:', newBrandName.value);
       addBrandToDB(newBrandName.value);
       newBrandName.value = '';
     };
