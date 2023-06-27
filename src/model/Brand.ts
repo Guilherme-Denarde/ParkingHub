@@ -1,5 +1,10 @@
 import { AbstractEntity } from "./AbstractEntity"
 
 export class Brand extends AbstractEntity {
-    nome!: string;
+    name!: string;
+
+    constructor(name: string) {
+        super();
+        this.name = name;
+      }
 }
