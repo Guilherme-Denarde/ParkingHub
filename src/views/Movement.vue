@@ -30,18 +30,25 @@
           <td>{{ movement.active }}</td>
           <td>{{ movement.departure }}</td>
           <td>
-            <div >
-              <button @click="updateDeparture(movement)" :disabled="movement.departure !== ''" class="departure-button">Departure</button>
-            </div>
+              <button @click="openReportPopup(); updateDeparture(movement) " :disabled="movement.departure !== ''" class="departure-button">Departure</button>
           </td>
         </tr>
       </tbody>
     </table>
+    <div v-if="showReportPopup" class="report-popup">
+      <div class="report-content">
+        <h2>Report</h2>
+        <Report :reportText="currentMovementReport" />
+        <!-- <p>{{ currentMovementReport }}</p> -->
+        <button @click="closeReportPopup" class="close-button">Close</button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
+import Report from '@/components/Report.vue';
 
 interface Vehicle {
   id: number;
@@ -55,6 +62,7 @@ interface Movement {
   register: string;
   active: boolean;
   departure: string;
+  report: string; // Add report property to the Movement interface
 }
 
 export default defineComponent({
@@ -63,6 +71,8 @@ export default defineComponent({
     const newMovementConductorCPF = ref("");
     const vehicles = ref<Vehicle[]>([]);
     const movements = ref<Movement[]>([]);
+    const showReportPopup = ref(false);
+    const currentMovementReport = ref("");
     let db: IDBDatabase;
 
     const dbRequest = window.indexedDB.open("movementDatabase", 1);
@@ -107,36 +117,65 @@ export default defineComponent({
     };
 
     const createMovement = () => {
-      const transaction = db.transaction("movements", "readwrite");
-      const objectStore = transaction.objectStore("movements");
-      const newMovement: Movement = {
-        id: Date.now(),
-        vehiclePlate: newMovementPlate.value,
-        conductorCPF: newMovementConductorCPF.value,
-        register: new Date().toLocaleString(),
-        active: true,
-        departure: ""
-      };
-      objectStore.add(newMovement);
+      const transaction = db.transaction(["movements", "conductors"], "readwrite");
+      const movementStore = transaction.objectStore("movements");
+      const conductorStore = transaction.objectStore("conductors");
 
-      newMovementPlate.value = "";
-      newMovementConductorCPF.value = "";
-      fetchMovements();
+      // Check if conductor CPF exists in the database
+      const conductorCPF = newMovementConductorCPF.value;
+      const getRequest = conductorStore.index("cpf").get(conductorCPF);
+
+      getRequest.onsuccess = (event: Event) => {
+        const conductor = (event.target as IDBRequest).result;
+        if (conductor) {
+          const newMovement: Movement = {
+            id: Date.now(),
+            vehiclePlate: newMovementPlate.value,
+            conductorCPF,
+            register: new Date().toLocaleString(),
+            active: true,
+            departure: "",
+            report: generateReportText(newMovementPlate.value, conductorCPF) // Generate the report text
+          };
+          movementStore.add(newMovement);
+
+          newMovementPlate.value = "";
+          newMovementConductorCPF.value = "";
+          fetchMovements();
+        } else {
+          // Handle case when conductor is not found
+          alert("Conductor not found in the database");
+        }
+      };
     };
 
     const updateDeparture = (movement: Movement) => {
-      const transaction = db.transaction("movements", "readwrite");
-      const objectStore = transaction.objectStore("movements");
-      const updatedMovement = { ...movement };
-      updatedMovement.departure = new Date().toLocaleString();
-      objectStore.put(updatedMovement);
+      if (movement.active) {
+    const transaction = db.transaction("movements", "readwrite");
+    const objectStore = transaction.objectStore("movements");
+    const updatedMovement = { ...movement };
+    updatedMovement.departure = new Date().toLocaleString();
+    updatedMovement.active = false; 
+    objectStore.put(updatedMovement);
 
       fetchMovements();
-      generateReport(updatedMovement);
+      
+      showReportPopup.value = true;
+      currentMovementReport.value = updatedMovement.report;
+      }
     };
 
-    const generateReport = (movement: Movement) => {
-      console.log("Generating report for movement:", movement);
+    const generateReportText = (vehiclePlate: string, conductorCPF: string) => {
+      
+      return `Report for movement:\n\nVehicle: ${vehiclePlate}\nConductor: ${conductorCPF}`;
+    };
+
+    const openReportPopup = () => {
+      showReportPopup.value = true;
+    };
+
+    const closeReportPopup = () => {
+      showReportPopup.value = false;
     };
 
     return {
@@ -144,13 +183,17 @@ export default defineComponent({
       newMovementConductorCPF,
       vehicles,
       movements,
+      showReportPopup,
+      currentMovementReport,
       createMovement,
-      updateDeparture
+      updateDeparture,
+      openReportPopup,
+      closeReportPopup
     };
   }
 });
-</script>
 
+</script>
 
 <style scoped>
 .container {
@@ -235,6 +278,39 @@ export default defineComponent({
 }
 
 .action-button:hover {
+  background-color: #45a049;
+}
+
+.report-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.report-content {
+  background-color: white;
+  padding: 2em;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.close-button {
+  padding: 0.3em 0.6em;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 1em;
+}
+
+.close-button:hover {
   background-color: #45a049;
 }
 </style>

@@ -10,6 +10,7 @@ import Header from '@/components/Header.vue';
 @Options({
   components: {
     Header,
+    reportText: String,
   },
 })
 export default class HomeView extends Vue {}

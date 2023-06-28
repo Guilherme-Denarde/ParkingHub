@@ -53,10 +53,54 @@
   </template>
   
   
-  <script>
-  export default {
-    data() {
+<script>
+export default {
+  data() {
+    return {
+      hourValue: 0,
+      trafficTicket: 0,
+      startWorkHr: '',
+      endWorkHr: '',
+      discountTime: 0,
+      discountShift: false,
+      carVacancy: 0,
+      bikeVacancy: 0,
+      vanVacancy: 0,
+      darkMode: false
+    };
+  },
+  mounted() {
+    this.loadSettings();
+  },
+  methods: {
+    loadSettings() {
+      const request = window.indexedDB.open('settingsDatabase', 1);
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        const objectStore = db.createObjectStore('settings', { keyPath: 'id' });
+        objectStore.transaction.oncomplete = () => {
+          const settingsStore = db.transaction('settings', 'readwrite').objectStore('settings');
+          settingsStore.add(this.getDefaultSettings());
+        };
+      };
+
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+        const settingsStore = db.transaction('settings', 'readwrite').objectStore('settings');
+        const getRequest = settingsStore.get(1);
+
+        getRequest.onsuccess = (event) => {
+          const settings = event.target.result;
+          if (settings) {
+            this.updateSettings(settings);
+          }
+        };
+      };
+    },
+    getDefaultSettings() {
       return {
+        id: 1,
         hourValue: 0,
         trafficTicket: 0,
         startWorkHr: '',
@@ -69,19 +113,64 @@
         darkMode: false
       };
     },
-    methods: {
-      toggleDiscountShift() {
-        this.discountShift = !this.discountShift;
-      },
-      toggleDarkMode() {
-        this.darkMode = !this.darkMode;
-        document.body.classList.toggle('dark');
-      }
+    updateSettings(settings) {
+      this.hourValue = settings.hourValue;
+      this.trafficTicket = settings.trafficTicket;
+      this.startWorkHr = settings.startWorkHr;
+      this.endWorkHr = settings.endWorkHr;
+      this.discountTime = settings.discountTime;
+      this.discountShift = settings.discountShift;
+      this.carVacancy = settings.carVacancy;
+      this.bikeVacancy = settings.bikeVacancy;
+      this.vanVacancy = settings.vanVacancy;
+      this.darkMode = settings.darkMode;
+      document.body.classList.toggle('dark', this.darkMode);
+    },
+    saveSettings() {
+      const request = window.indexedDB.open('settingsDatabase', 1);
+
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+        const settingsStore = db.transaction('settings', 'readwrite').objectStore('settings');
+        const settings = {
+          id: 1,
+          hourValue: this.hourValue,
+          trafficTicket: this.trafficTicket,
+          startWorkHr: this.startWorkHr,
+          endWorkHr: this.endWorkHr,
+          discountTime: this.discountTime,
+          discountShift: this.discountShift,
+          carVacancy: this.carVacancy,
+          bikeVacancy: this.bikeVacancy,
+          vanVacancy: this.vanVacancy,
+          darkMode: this.darkMode
+        };
+        settingsStore.put(settings);
+      };
+    },
+    toggleDiscountShift() {
+      this.discountShift = !this.discountShift;
+    },
+    toggleDarkMode() {
+      this.darkMode = !this.darkMode;
+      document.body.classList.toggle('dark', this.darkMode);
     }
-  };
-  </script>
-  
-<style scoped>
+  },
+  watch: {
+    hourValue: 'saveSettings',
+    trafficTicket: 'saveSettings',
+    startWorkHr: 'saveSettings',
+    endWorkHr: 'saveSettings',
+    discountTime: 'saveSettings',
+    discountShift: 'saveSettings',
+    carVacancy: 'saveSettings',
+    bikeVacancy: 'saveSettings',
+    vanVacancy: 'saveSettings',
+    darkMode: 'saveSettings'
+  }
+};
+</script>
+<style>
   .container {
   text-align: center;
   margin: 2em;
