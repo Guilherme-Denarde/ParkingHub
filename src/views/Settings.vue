@@ -18,6 +18,10 @@
         <input v-model="endWorkHr" type="time" class="rounded-input" />
       </div>
       <div class="option">
+        <label for="discountTime">Discount value:</label>
+        <input v-model="discountValue" type="number" min="0" step="0.01" class="rounded-input" />
+      </div>
+      <div class="option">
         <label for="discountTime">Discount Time:</label>
         <input v-model="discountTime" type="number" min="0" step="0.01" class="rounded-input" />
       </div>

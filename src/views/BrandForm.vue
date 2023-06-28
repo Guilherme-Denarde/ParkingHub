@@ -36,23 +36,28 @@
 </template>
 
 <script lang="ts">
-import { Brand } from '@/model/Brand';
 import { defineComponent, ref, onMounted } from 'vue';
+
 export default defineComponent({
   setup() {
     const newBrandName = ref<string>('');
     const updatedBrandName = ref<string>('');
     const brands = ref<any[]>([]);
-    let db: any;
+    let db: IDBDatabase;
     let brandToUpdate: any;
     let showPopup = ref<boolean>(false);
 
-    const dbRequest = window.indexedDB.open('brandDatabase', 1);
+    const dbRequest = indexedDB.open('movementDatabase', 1);
 
     dbRequest.onupgradeneeded = function (event: any) {
       db = event.target.result;
       if (db) {
-        db.createObjectStore('brands', { keyPath: 'id', autoIncrement: true });
+        const brandObjectStore = db.createObjectStore('brands', { keyPath: 'id', autoIncrement: true });
+        brandObjectStore.createIndex('name', 'name', { unique: true });
+        const objectStore = db.createObjectStore('models', { keyPath: 'id', autoIncrement: true });
+        objectStore.createIndex('register', 'register', { unique: false });
+        objectStore.createIndex('update', 'update', { unique: false });
+        objectStore.createIndex('active', 'active', { unique: false });
       }
     };
 
@@ -65,33 +70,16 @@ export default defineComponent({
       if (!db) return;
       const transaction = db.transaction(['brands'], 'readwrite');
       const objectStore = transaction.objectStore('brands');
-      objectStore.add({ name: name });
+      const register = new Date().toLocaleTimeString();
+      const brand = {
+        name: name,
+        register: register,
+        update: null,
+        active: true,
+      };
+      objectStore.add(brand);
       fetchBrandsFromDB();
     };
-//     const addBrandToDB = (name: string): void => {
-//   if (!db) return;
-
-//   const transaction = db.transaction(['brands'], 'readwrite');
-//   const objectStore = transaction.objectStore('brands');
-
-//   try {
-//     const brand = new Brand(name);
-//     brand.name = name;
-
-//     const request = objectStore.add(brand);
-//     request.onerror = (event: Event) => {
-//       console.error('Error adding brand to IndexedDB:', (event.target as any).error);
-//     };
-//     request.onsuccess = () => {
-//       console.log('Brand added to IndexedDB successfully');
-//       fetchBrandsFromDB();
-//     };
-//   } catch (error) {
-//     console.error('Error creating brand:', error);
-//   }
-// };
-
-
 
     const updateBrandInDB = (id: number, newName: string): void => {
       if (!db) return;
@@ -102,6 +90,7 @@ export default defineComponent({
       getRequest.onsuccess = function () {
         const data = getRequest.result;
         data.name = newName;
+        data.update = new Date();
         objectStore.put(data);
         fetchBrandsFromDB();
       };
@@ -128,7 +117,6 @@ export default defineComponent({
 
     const createBrand = (): void => {
       if (newBrandName.value.trim() === '') return;
-      // console.log('Brand Name:', newBrandName.value);
       addBrandToDB(newBrandName.value);
       newBrandName.value = '';
     };
@@ -156,9 +144,8 @@ export default defineComponent({
       showPopup.value = false;
     };
 
-    // Fetch brands from IndexedDB when the component is mounted
     onMounted(fetchBrandsFromDB);
-    
+
     return {
       newBrandName,
       updatedBrandName,
@@ -173,7 +160,6 @@ export default defineComponent({
   },
 });
 </script>
-
 <style scoped>
 .container {
   text-align: center;

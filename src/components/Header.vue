@@ -37,12 +37,11 @@ export default {
       showPopup: false,
       showLinks: true,
       navLinks: [
-        { to: "/", label: "Home" },
+        { to: "/", label: "Movement" },
         { to: "/brand", label: "Brand" },
-        { to: "/conductor", label: "Conductor" },
         { to: "/model", label: "Model" },
-        { to: "/movement", label: "Movement" },
         { to: "/vehicle", label: "Vehicle" },
+        { to: "/conductor", label: "Conductor" },
         { to: "/settings", label: "Settings" }
       ]
     };

@@ -1,10 +1,11 @@
-import { AbstractEntity } from "./AbstractEntity"
+import { AbstractEntity } from './AbstractEntity';
 
 export class Brand extends AbstractEntity {
     name!: string;
 
-    constructor(name: string) {
+    constructor() {
         super();
-        this.name = name;
-      }
+        this.register = new Date();
+        this.active = true;
+    }
 }

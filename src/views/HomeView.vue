@@ -1,3 +1,3 @@
 <template>
-    <h1>Olha eu aqui</h1>
+    <h1>Wellcome to ParkingHub</h1>
 </template>

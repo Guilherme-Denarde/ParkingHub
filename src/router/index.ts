@@ -1,16 +1,10 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    name: 'home',
-    component: HomeView
-  },
-  {
-    path: '/about',
-    name: 'about',
-    component: () => import('../views/AboutView.vue')
+    name: 'Movement',
+    component: () => import('../views/Movement.vue')
   },
   {
     path: '/brand',
@@ -26,11 +20,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/model',
     name: 'Model',
     component: () => import('../views/Model.vue')
-  },
-  {
-    path: '/movement',
-    name: 'Movement',
-    component: () => import('../views/Movement.vue')
   },
   {
     path: '/vehicle',
