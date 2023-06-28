@@ -16,12 +16,24 @@
         <tr>
           <th>Vehicle</th>
           <th>Conductor</th>
+          <th>Register</th>
+          <th>Active</th>
+          <th>Departure</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="movement in movements" :key="movement.id">
+        <tr v-for="movement in movements" :key="movement.id" :class="{ 'gray-row': movement.departure !== '' }">
           <td>{{ movement.vehiclePlate }}</td>
           <td>{{ movement.conductorCPF }}</td>
+          <td>{{ movement.register }}</td>
+          <td>{{ movement.active }}</td>
+          <td>{{ movement.departure }}</td>
+          <td>
+            <div >
+              <button @click="updateDeparture(movement)" :disabled="movement.departure !== ''" class="departure-button">Departure</button>
+            </div>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -40,6 +52,9 @@ interface Movement {
   id: number;
   vehiclePlate: string;
   conductorCPF: string;
+  register: string;
+  active: boolean;
+  departure: string;
 }
 
 export default defineComponent({
@@ -97,7 +112,10 @@ export default defineComponent({
       const newMovement: Movement = {
         id: Date.now(),
         vehiclePlate: newMovementPlate.value,
-        conductorCPF: newMovementConductorCPF.value
+        conductorCPF: newMovementConductorCPF.value,
+        register: new Date().toLocaleString(),
+        active: true,
+        departure: ""
       };
       objectStore.add(newMovement);
 
@@ -106,17 +124,32 @@ export default defineComponent({
       fetchMovements();
     };
 
+    const updateDeparture = (movement: Movement) => {
+      const transaction = db.transaction("movements", "readwrite");
+      const objectStore = transaction.objectStore("movements");
+      const updatedMovement = { ...movement };
+      updatedMovement.departure = new Date().toLocaleString();
+      objectStore.put(updatedMovement);
+
+      fetchMovements();
+      generateReport(updatedMovement);
+    };
+
+    const generateReport = (movement: Movement) => {
+      console.log("Generating report for movement:", movement);
+    };
+
     return {
       newMovementPlate,
       newMovementConductorCPF,
       vehicles,
       movements,
-      createMovement
+      createMovement,
+      updateDeparture
     };
   }
 });
 </script>
-
 
 
 <style scoped>
@@ -168,6 +201,24 @@ export default defineComponent({
   font-size: 1.1em;
   width: 50%;
   margin-right: 1em;
+}
+
+.departure-button {
+  padding: 0.3em 0.6em;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.departure-button button[disabled] {
+  background-color: gray;
+  cursor: not-allowed;
+}
+
+.gray-row {
+  background-color: #f2f2f2;
 }
 
 .action-button {
