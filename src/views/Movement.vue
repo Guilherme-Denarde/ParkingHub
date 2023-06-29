@@ -30,7 +30,8 @@
           <td>{{ movement.active }}</td>
           <td>{{ movement.departure }}</td>
           <td>
-              <button @click="openReportPopup(); updateDeparture(movement) " :disabled="movement.departure !== ''" class="departure-button">Departure</button>
+            <button @click="openReportPopup(); updateDeparture(movement)" :disabled="movement.departure !== ''"
+              class="departure-button">Departure</button>
           </td>
         </tr>
       </tbody>
@@ -38,8 +39,8 @@
     <div v-if="showReportPopup" class="report-popup">
       <div class="report-content">
         <h2>Report</h2>
-        <Report :reportText="currentMovementReport" />
-        <!-- <p>{{ currentMovementReport }}</p> -->
+        <!-- <Report :reportText="currentMovementReport" /> -->
+        <p>{{ currentMovementReport }}</p>
         <button @click="closeReportPopup" class="close-button">Close</button>
       </div>
     </div>
@@ -143,7 +144,6 @@ export default defineComponent({
           newMovementConductorCPF.value = "";
           fetchMovements();
         } else {
-          // Handle case when conductor is not found
           alert("Conductor not found in the database");
         }
       };
@@ -151,24 +151,100 @@ export default defineComponent({
 
     const updateDeparture = (movement: Movement) => {
       if (movement.active) {
-    const transaction = db.transaction("movements", "readwrite");
-    const objectStore = transaction.objectStore("movements");
-    const updatedMovement = { ...movement };
-    updatedMovement.departure = new Date().toLocaleString();
-    updatedMovement.active = false; 
-    objectStore.put(updatedMovement);
+        const transaction = db.transaction("movements", "readwrite");
+        const objectStore = transaction.objectStore("movements");
+        const updatedMovement = { ...movement };
+        updatedMovement.departure = new Date().toLocaleString();
+        updatedMovement.active = false;
+        objectStore.put(updatedMovement);
 
-      fetchMovements();
-      
-      showReportPopup.value = true;
-      currentMovementReport.value = updatedMovement.report;
+        fetchMovements();
+
+        generateReport(updatedMovement);
       }
     };
 
-    const generateReportText = (vehiclePlate: string, conductorCPF: string) => {
+    const generateReport = (movement: Movement) => {
+      console.log("teste");
       
-      return `Report for movement:\n\nVehicle: ${vehiclePlate}\nConductor: ${conductorCPF}`;
+      // const conductor = getConductorByCPF(movement.conductorCPF)
+  //   .then((conductor) => {
+  //     if (!conductor) {
+  //       alert("Conductor not found in the database");
+  //       return;
+  //     }
+  //     const totalTime = calculateTotalTime(conductor.enter, conductor.departure);
+
+  //     const report = `Report for movement ID ${movement.id}:\n\n` +
+  //       `Vehicle: ${movement.vehiclePlate}\n` +
+  //       `Conductor: ${conductor.name}\n` +
+  //       `CPF: ${movement.conductorCPF}\n` +
+  //       `Register: ${movement.register}\n` +
+  //       `Active: ${movement.active}\n` +
+  //       `Departure: ${movement.departure}\n` +
+  //       `Total Time: ${totalTime}`;
+
+  //     currentMovementReport.value = report;
+  //     showReportPopup.value = true;
+  //   })
+  //   .catch((error) => {
+  //     console.error("Error fetching conductor details:", error);
+  //     alert("An error occurred while generating the report");
+  //   });
+};
+
+
+
+    const generateReportText =  (vehiclePlate: string, conductorCPF: string) => {
+  // const conductor = await getConductorByCPF(conductorCPF);
+
+  // if (!conductor) {
+  //   return "Conductor not found in the database";
+  // }
+
+  // const totalTime = calculateTotalTime(conductor.enter, conductor.departure);
+
+  return `Report for movement:\n\n` 
+    // `Name: ${conductor.name}\n` +
+    // `CPF: ${conductorCPF}\n`
+    // `Enter: ${conductor.enter}\n` +
+    // `Departure: ${conductor.departure}\n` +
+    // `Total Time: ${totalTime}`
+    ;
+};
+
+
+const calculateTotalTime = (enter: string, departure: string): string => {
+  const enterTime = new Date(enter).getTime();
+  const departureTime = new Date(departure).getTime();
+  const totalTimeInMillis = departureTime - enterTime;
+
+  // Calculate hours, minutes, and seconds from total milliseconds
+  const hours = Math.floor(totalTimeInMillis / (1000 * 60 * 60));
+  const minutes = Math.floor((totalTimeInMillis % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((totalTimeInMillis % (1000 * 60)) / 1000);
+
+  return `${hours}h ${minutes}m ${seconds}s`;
+};
+
+const getConductorByCPF = (cpf: string): Promise<any> => {
+
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction("movementDatabase", "readonly");
+    const objectStore = transaction.objectStore("conductors");
+    const index = objectStore.index("cpf");
+    const getRequest = index.get(cpf);
+
+    getRequest.onsuccess = (event: Event) => {
+      const conductor = (event.target as IDBRequest).result;
+      resolve(conductor);
     };
+
+    getRequest.onerror = (event: Event) => {
+      reject(event);
+    };
+  });
+};
 
     const openReportPopup = () => {
       showReportPopup.value = true;

@@ -42,7 +42,7 @@
           <td>{{ vehicle.color }}</td>
           <td>{{ vehicle.plate }}</td>
           <td>
-            <button @click="updateVehicleInDB(vehicle)">Editar</button>
+            <button @click="updateVehicleInDB(vehicle)" class="add">Editar</button>
             <button @click="deleteVehicleFromDB(vehicle.id)">Excluir</button>
           </td>
         </tr>
